@@ -56,8 +56,8 @@ function requestRating() {
         },
         metadata: String.fromCharCode(route.length) + route
     }).subscribe({
-        onComplete: () => {
-            console.log('Complete')
+        onComplete: completeData => {
+            console.log('Complete '+ completeData.data)
         },
         onError: error => {
             console.log("Connection has been closed due to " + error);
