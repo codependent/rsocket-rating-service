@@ -1,0 +1,10 @@
+spring:
+  rsocket:
+    server:
+      mapping-path: /rating-ws
+      transport: websocket
+
+logging:
+  level:
+    com.codependent: info
+    org.springframework.boot.autoconfigure: error
