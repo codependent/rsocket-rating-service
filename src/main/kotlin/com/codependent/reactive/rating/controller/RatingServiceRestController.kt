@@ -5,15 +5,14 @@ import org.springframework.messaging.handler.annotation.MessageMapping
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RestController
 import reactor.core.publisher.Mono
-import reactor.retry.Backoff
 import reactor.retry.Repeat
+import reactor.util.context.Context
 import java.time.Duration
-
 
 @RestController
 class RatingServiceRestController {
 
-    private val FAIL_RATE = 0
+    private val FAIL_RATE = 40
     private val logger = LoggerFactory.getLogger(javaClass)
 
     @GetMapping("/requestRating")
@@ -24,41 +23,16 @@ class RatingServiceRestController {
     @MessageMapping("request-rating")
     fun getRatingWebSocket(ratingRequest: RatingRequest): Mono<Rating> {
         return generateRating(ratingRequest)
+                .subscriberContext(Context.empty())
     }
 
     private fun generateRating(ratingRequest: RatingRequest): Mono<Rating> {
         return doGenerateRating(ratingRequest)
-                .doOnNext {
-                    logger.info("Next1 {}", it)
+                .repeatWhenEmpty(10000) {
+                    it.delayElements(Duration.ofMillis(100))
+                            .doOnNext { logger.info("repeating {}", it) }
                 }
-                .doOnCancel {
-                    logger.info("Cancel1")
-                }
-                .doOnSuccess {
-                    logger.info("Success1 {}", it)
-                }
-                .doOnError { throwable ->
-                    logger.error("Error1 {}", throwable)
-                }
-                .doOnTerminate {
-                    logger.info("Terminate1")
-                }
-                .repeatWhenEmpty(Repeat.onlyIf<Any> { true }.backoff(Backoff.fixed(Duration.ofSeconds(1))))
-                .doOnNext {
-                    logger.info("Next2 {}", it)
-                }
-                .doOnCancel {
-                    logger.info("Cancel2")
-                }
-                .doOnSuccess {
-                    logger.info("Success2 {}", it)
-                }
-                .doOnError { throwable ->
-                    logger.error("Error2 {}", throwable)
-                }
-                .doOnTerminate {
-                    logger.info("Terminate2")
-                }
+                //XXX This operator oesn't work: .repeatWhenEmpty(Repeat.times<Context>(0L).withApplicationContext(Context.empty()))
     }
 
     private fun doGenerateRating(ratingRequest: RatingRequest): Mono<Rating> {
