@@ -27,7 +27,7 @@ class RatingServiceApplicationTests(
     @Test
     fun testRequestGetsResponse() {
         val ratingRequest = RatingRequest("songId")
-        val result: Mono<Rating> = requester!!
+        val result: Mono<Rating> = requester
                 .route("request-rating")
                 .data(ratingRequest)
                 .retrieveMono(Rating::class.java)
