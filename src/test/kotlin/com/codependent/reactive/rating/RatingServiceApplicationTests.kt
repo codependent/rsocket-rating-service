@@ -2,7 +2,6 @@ package com.codependent.reactive.rating
 
 import com.codependent.reactive.rating.controller.Rating
 import com.codependent.reactive.rating.controller.RatingRequest
-import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS
@@ -15,19 +14,11 @@ import java.net.URI
 
 @SpringBootTest
 @TestInstance(PER_CLASS)
-class RatingServiceApplicationTests {
-    var requester: RSocketRequester? = null
+class RatingServiceApplicationTests(@Autowired private val builder: RSocketRequester.Builder) {
 
-    @BeforeAll
-    fun setupOnce(@Autowired builder: RSocketRequester.Builder) {
-        requester = builder
-                .connectWebSocket(URI.create("http://localhost:8080/rating-ws"))
-                .block()
-    }
-
-    @Test
-    fun contextLoads() {
-    }
+    private val requester: RSocketRequester = builder
+            .connectWebSocket(URI.create("http://localhost:8080/rating-ws"))
+            .block()!!
 
     @Test
     fun testRequestGetsResponse() {
